@@ -11,7 +11,7 @@ LIBS=-lm
 _DEPS = btree.h btree_file.h debug.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = main.o btree_file.o
+_OBJ = main.o btree_file.o btree.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: $(ODIR) $(TARGET) 

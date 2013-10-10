@@ -21,4 +21,10 @@ int BTREE_FileRead(int fd, BTREE_Node *b, BTREE_Index index) {
    return 0;
 }
 
+int BTREE_FileWriteRaw(int fd, char *b, size_t sz) {
+   return write(fd, b, sz);
+}
 
+int BTREE_FileReadRaw(int fd, char *b, size_t sz) {
+   return read(fd, b, sz);
+}

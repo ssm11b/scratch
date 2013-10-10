@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <getopt.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "btree.h"
 
@@ -68,14 +69,30 @@ BTREE_UtilGetOptions(int argc, char* argv[]) {
    }
 }
 
+
+static void
+BTREE_UtilInit(void) {
+   int         fd = BTREE_FileOpen(BTREE_FileName, 1);
+   BTREE_Meta* m  = malloc(sizeof(BTREE_Super));
+
+   ASSERT(fd > 0);
+   ASSERT(m != NULL);
+   memset(m, 0xa5, sizeof(BTREE_Super));
+   m->magic    = BTREE_MAGIC;
+   m->rootNode = BTREE_INVALID;
+   m->freeNode = 0;
+
+   ASSERT(BTREE_FileWriteRaw(fd, m, sizeof(BTREE_Super)));
+   free(m);
+}
+
+
 static void
 BTREE_UtilRun(void) {
-   int fd;
    switch(BTREE_UtilOP) {
       case BTREE_UTIL_OP_INIT:
          LOG("opening file-name %s\n", BTREE_FileName);
-         fd = BTREE_FileOpen(BTREE_FileName, 1);
-         ASSERT(fd > 0);
+         BTREE_UtilInit();
          break;
    }
 }

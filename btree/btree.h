@@ -1,11 +1,13 @@
 #ifndef __BTREE_H__
 #define __BTREE_H__
 
-
-
 typedef uint64_t  BTREE_Key;
+typedef uint64_t  BTREE_Data;
 typedef uint64_t  BTREE_Index;
-#define           BTREE_Degree 9
+typedef uint64_t  BTREE_Magic;
+#define           BTREE_Degree   9
+#define           BTREE_MAGIC    0xa5a5aa55aa55a5a5
+#define           BTREE_INVALID  (-1ULL)
 
 #define BTREE_NodeState \
    EDEF(Invalid), \
@@ -28,22 +30,45 @@ const char *BTREE_NodeStateNames[] = {
 #endif
 
 typedef struct BTREE_Node{
-   BTREE_Key      keys[BTREE_Degree-1];
-   BTREE_Index   nodes[BTREE_Degree];
-   uint64_t       depth;
+   BTREE_Key   keys[BTREE_Degree-1];
+   BTREE_Key   data[BTREE_Degree-1];
+   BTREE_Index nodes[BTREE_Degree];
+   uint64_t    depth;
 } BTREE_Node;
 
+
+typedef struct BTREE_Meta {
+   BTREE_Magic magic;
+   BTREE_Index rootNode;
+   BTREE_Index freeNode;
+} BTREE_Meta;
+
+#define BTREE_ALIGN512(x)   ((sizeof(x) + 0x1ff) & ~(0x1ff))
+
+typedef struct BTREE_Super {
+   union {
+      BTREE_Meta  meta;
+      uint8_t     buf[BTREE_ALIGN512(BTREE_Meta)];
+   };
+} BTREE_Super;
+
 typedef struct BTREE {
-   BTREE_Index   rootNode;
-   BTREE_Index   freeNode;
-   const char*   path;
-   void*         ioHandle;
+   BTREE_Index    rootNode;
+   BTREE_Index    freeNode;
+   BTREE_Super*   tree;
+   const char*    path;
+   void*          ioHandle;
 } BTREE;
+
 
 BTREE_Node* BTREE_ReadNode(BTREE_Index node);
 void        BTREE_WriteNode(BTREE_Node* node);
 BTREE_Index BTREE_AllocNode(BTREE* tree);
 void        BTREE_FreeNode(BTREE* tree, BTREE_Index idx);
+
+int         BTREE_Insert(BTREE_Key* key, BTREE_Data *data);
+int         BTREE_Find(BTREE_Key* key, BTREE_Data *data);
+int         BTREE_Remove(BTREE_Key* key);
 
 #endif // __BTREE_H__
 
