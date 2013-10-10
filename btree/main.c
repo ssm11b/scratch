@@ -11,23 +11,33 @@
 
 
 static const struct option BTREE_UtilOptions[] = {
-   { "file-name", required_argument, NULL, 'f' },
-   { "init", no_argument, NULL, 'i' },
-   { "help", no_argument, NULL, 'h' },
-   { NULL, no_argument, NULL, 0 }
+   { "file-name", required_argument,   NULL, 'f' },
+   { "create",    no_argument,         NULL, 'c' },
+   { "key",       required_argument,   NULL, 'k' },
+   { "data",      required_argument,   NULL, 'd' },
+   { "insert",    no_argument,         NULL, 'i' },
+   { "query",     no_argument,         NULL, 'q' },
+   { "remove",    no_argument,         NULL, 'r' },
+   { "help",      no_argument,         NULL, 'h' },
+   { NULL,        no_argument,         NULL, 0 }
 };
 
 static const char* BTREE_UtilHelpStrings[] = {
    "btree data filename",
    "create empty btree data file",
+   "key for the operation",
+   "data for the operation",
+   "insert [key,data] pair into the tree",
+   "query [data] for the given key",
+   "remove the entry for the give [key]",
    "help menu",
 };
 
-static const char *BTREE_UtilOptString = "f:ih?";
+static const char *BTREE_UtilOptString = "f:k:d:iqrch?";
 static const char *BTREE_FileName = NULL;
 static uint64_t    BTREE_UtilOP;
 
-#define BTREE_UTIL_OP_INIT   (1ULL<<0)
+#define BTREE_UTIL_OP_CREATE   (1ULL<<0)
 
 
 static void
@@ -56,9 +66,9 @@ BTREE_UtilGetOptions(int argc, char* argv[]) {
          case 'f':
             BTREE_FileName = optarg;
             break;
-         case 'i':
-            BTREE_UtilOP = BTREE_UTIL_OP_INIT;
-            LOG("init\n");
+         case 'c':
+            BTREE_UtilOP = BTREE_UTIL_OP_CREATE;
+            LOG("create\n");
             break;
          case 'h':
             LOG("help\n");
@@ -71,7 +81,7 @@ BTREE_UtilGetOptions(int argc, char* argv[]) {
 
 
 static void
-BTREE_UtilInit(void) {
+BTREE_UtilCreate(void) {
    int         fd = BTREE_FileOpen(BTREE_FileName, 1);
    BTREE_Meta* m  = malloc(sizeof(BTREE_Super));
 
@@ -90,9 +100,9 @@ BTREE_UtilInit(void) {
 static void
 BTREE_UtilRun(void) {
    switch(BTREE_UtilOP) {
-      case BTREE_UTIL_OP_INIT:
+      case BTREE_UTIL_OP_CREATE:
          LOG("opening file-name %s\n", BTREE_FileName);
-         BTREE_UtilInit();
+         BTREE_UtilCreate();
          break;
    }
 }
