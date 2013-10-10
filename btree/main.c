@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "btree.h"
+#include "btree_file.h"
 
 #define LOGPFX "btree-util"
 #include "debug.h"
@@ -36,8 +37,14 @@ static const char* BTREE_UtilHelpStrings[] = {
 static const char *BTREE_UtilOptString = "f:k:d:iqrch?";
 static const char *BTREE_FileName = NULL;
 static uint64_t    BTREE_UtilOP;
+static BTREE_Key   key;
+static BTREE_Data  data;
+static BTREE_Ops  *ops = NULL;
 
 #define BTREE_UTIL_OP_CREATE   (1ULL<<0)
+#define BTREE_UTIL_OP_INSERT   (1ULL<<1)
+#define BTREE_UTIL_OP_QUERY    (1ULL<<2)
+#define BTREE_UTIL_OP_REMOVE   (1ULL<<3)
 
 
 static void
@@ -70,6 +77,21 @@ BTREE_UtilGetOptions(int argc, char* argv[]) {
             BTREE_UtilOP = BTREE_UTIL_OP_CREATE;
             LOG("create\n");
             break;
+         case 'k':
+            key = atoll(optarg);
+            break;
+         case 'd':
+            data = atoll(optarg);
+            break;
+         case 'i':
+            BTREE_UtilOP = BTREE_UTIL_OP_INSERT;
+            break;
+         case 'q':
+            BTREE_UtilOP = BTREE_UTIL_OP_QUERY;
+            break;
+         case 'r':
+            BTREE_UtilOP = BTREE_UTIL_OP_REMOVE;
+            break;
          case 'h':
             LOG("help\n");
          default:
@@ -81,34 +103,48 @@ BTREE_UtilGetOptions(int argc, char* argv[]) {
 
 
 static void
-BTREE_UtilCreate(void) {
-   int         fd = BTREE_FileOpen(BTREE_FileName, 1);
-   BTREE_Meta* m  = malloc(sizeof(BTREE_Super));
+BTREE_UtilInsert(void)
+{
+}
 
-   ASSERT(fd > 0);
-   ASSERT(m != NULL);
-   memset(m, 0xa5, sizeof(BTREE_Super));
-   m->magic    = BTREE_MAGIC;
-   m->rootNode = BTREE_INVALID;
-   m->freeNode = 0;
+static void
+BTREE_UtilQuery(void)
+{
+}
 
-   ASSERT(BTREE_FileWriteRaw(fd, m, sizeof(BTREE_Super)));
-   free(m);
+static void
+BTREE_UtilRemove(void)
+{
 }
 
 
 static void
-BTREE_UtilRun(void) {
+BTREE_UtilRun(void)
+{
    switch(BTREE_UtilOP) {
       case BTREE_UTIL_OP_CREATE:
          LOG("opening file-name %s\n", BTREE_FileName);
-         BTREE_UtilCreate();
+         BTREE_Init(BTREE_FileName, BTREE_FileGetOps(), 1);
+         break;
+      case BTREE_UTIL_OP_INSERT:
+         BTREE_Init(BTREE_FileName, BTREE_FileGetOps(), 0);
+         BTREE_UtilInsert();
+         break;
+      case BTREE_UTIL_OP_QUERY:
+         BTREE_UtilQuery();
+         break;
+      case BTREE_UTIL_OP_REMOVE:
+         BTREE_UtilRemove();
+         break;
+      default:
+         Panic("OP %ld not implemented.\n", BTREE_UtilOP);
          break;
    }
 }
 
 int
-main(int argc, char* argv[]) {
+main(int argc, char* argv[])
+{
    BTREE_UtilGetOptions(argc, argv);
    BTREE_UtilRun();
    return 0;

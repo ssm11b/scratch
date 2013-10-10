@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define ASSERT assert
 
 #ifdef LOGPFX
 #define LGPFX LOGPFX
@@ -14,6 +13,13 @@
 
 #define LOG(__fmt,...)  \
    printf(LGPFX ": "__fmt, ## __VA_ARGS__)
+
+#define ASSERT assert
+#define Panic(fmt,...)                 \
+   LOG("Panic: "fmt, ## __VA_ARGS__);  \
+   ASSERT(0)
+
+
 
 #endif // __DEBUG_H__
 

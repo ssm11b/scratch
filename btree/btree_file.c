@@ -13,18 +13,31 @@ int BTREE_FileOpen(const char* file, int init) {
           open(file, flags, S_IRUSR|S_IWUSR);
 }
 
-int BTREE_FileWrite(int fd, BTREE_Node *b, BTREE_Index index) {
+int BTREE_FileWrite(DEV fd, BTREE_Node *b, BTREE_Index index) {
    return 0;
 }
 
-int BTREE_FileRead(int fd, BTREE_Node *b, BTREE_Index index) {
+int BTREE_FileRead(DEV fd, BTREE_Node *b, BTREE_Index index) {
    return 0;
 }
 
-int BTREE_FileWriteRaw(int fd, char *b, size_t sz) {
+int BTREE_FileWriteRaw(DEV fd, void *b, size_t sz) {
    return write(fd, b, sz);
 }
 
-int BTREE_FileReadRaw(int fd, char *b, size_t sz) {
+int BTREE_FileReadRaw(DEV fd, void *b, size_t sz) {
    return read(fd, b, sz);
+}
+
+BTREE_Ops BTREE_FileOps = {
+   .Open       = BTREE_FileOpen,
+   .WriteNode  = BTREE_FileWrite,
+   .ReadNode   = BTREE_FileRead,
+   .WriteRaw   = BTREE_FileWriteRaw,
+   .ReadRaw    = BTREE_FileReadRaw,
+};
+
+BTREE_Ops* BTREE_FileGetOps(void)
+{
+   return &BTREE_FileOps;
 }
