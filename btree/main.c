@@ -37,8 +37,8 @@ static const char* BTREE_UtilHelpStrings[] = {
 static const char *BTREE_UtilOptString = "f:k:d:iqrch?";
 static const char *BTREE_FileName = NULL;
 static uint64_t    BTREE_UtilOP;
-static BTREE_Key   key;
-static BTREE_Data  data;
+static BTREE_Key   key = BTREE_INVALID;
+static BTREE_Data  data = BTREE_INVALID;
 static BTREE_Ops  *ops = NULL;
 
 #define BTREE_UTIL_OP_CREATE   (1ULL<<0)
@@ -105,6 +105,13 @@ BTREE_UtilGetOptions(int argc, char* argv[]) {
 static void
 BTREE_UtilInsert(void)
 {
+   if (key == BTREE_INVALID || data == BTREE_INVALID) {
+      LOG("Invalid [key,data] = [%#lx, %#lx]\n", key, data);
+   } else {
+      BTREE_Init(BTREE_FileName, BTREE_FileGetOps(), 0);
+      BTREE_Insert(&key, &data);
+      LOG("Insert [key,data] = [%#lx, %#lx]\n", key, data);
+   }
 }
 
 static void
@@ -127,7 +134,6 @@ BTREE_UtilRun(void)
          BTREE_Init(BTREE_FileName, BTREE_FileGetOps(), 1);
          break;
       case BTREE_UTIL_OP_INSERT:
-         BTREE_Init(BTREE_FileName, BTREE_FileGetOps(), 0);
          BTREE_UtilInsert();
          break;
       case BTREE_UTIL_OP_QUERY:
@@ -147,5 +153,6 @@ main(int argc, char* argv[])
 {
    BTREE_UtilGetOptions(argc, argv);
    BTREE_UtilRun();
+   BTREE_Cleanup();
    return 0;
 }

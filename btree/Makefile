@@ -1,7 +1,7 @@
 IDIR =./
 CC=gcc
 CFLAGS=-I$(IDIR)
-TARGET=btree-util
+TARGET=btu
 
 ODIR=obj
 LDIR =../lib

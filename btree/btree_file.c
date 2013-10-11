@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include "btree.h"
+#include "debug.h"
 
 int BTREE_FileOpen(const char* file, int init) {
    int flags = O_RDWR | O_CREAT | (init ? O_TRUNC : 0);
@@ -13,26 +14,32 @@ int BTREE_FileOpen(const char* file, int init) {
           open(file, flags, S_IRUSR|S_IWUSR);
 }
 
-int BTREE_FileWrite(DEV fd, BTREE_Node *b, BTREE_Index index) {
+int BTREE_FileWriteNode(DEV fd, BTREE_Node *n)
+{
+   off_t offset = (BTREE_NODE_SZ * n->index) + BTREE_SUPER_OFFSET;
+   ASSERT(n != NULL);
+   lseek(fd, offset, SEEK_SET);
+   return write(fd, n, sizeof(*n)) == sizeof(*n);
+}
+
+int BTREE_FileReadNode(DEV fd, BTREE_Node *b) {
    return 0;
 }
 
-int BTREE_FileRead(DEV fd, BTREE_Node *b, BTREE_Index index) {
-   return 0;
-}
-
-int BTREE_FileWriteRaw(DEV fd, void *b, size_t sz) {
+int BTREE_FileWriteRaw(DEV fd, void *b, size_t sz, off_t off) {
+   lseek(fd, off, SEEK_SET);
    return write(fd, b, sz);
 }
 
-int BTREE_FileReadRaw(DEV fd, void *b, size_t sz) {
+int BTREE_FileReadRaw(DEV fd, void *b, size_t sz, off_t off) {
+   lseek(fd, off, SEEK_SET);
    return read(fd, b, sz);
 }
 
 BTREE_Ops BTREE_FileOps = {
    .Open       = BTREE_FileOpen,
-   .WriteNode  = BTREE_FileWrite,
-   .ReadNode   = BTREE_FileRead,
+   .WriteNode  = BTREE_FileWriteNode,
+   .ReadNode   = BTREE_FileReadNode,
    .WriteRaw   = BTREE_FileWriteRaw,
    .ReadRaw    = BTREE_FileReadRaw,
 };
