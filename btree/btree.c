@@ -1,4 +1,8 @@
-
+/*
+ *----------------------------------------------------------------------------
+ * btree.c
+ *----------------------------------------------------------------------------
+ */
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +17,13 @@ BTREE_Node*  root;
 BTREE_Ops*   btops;
 
 
+/*
+ *----------------------------------------------------------------------------
+ *
+ * BTREEInitNode --
+ *
+ *----------------------------------------------------------------------------
+ */
 static BTREE_Node*
 BTREEInitNode(BTREE_Index index, uint64_t depth, BOOL clean)
 {
@@ -25,8 +36,15 @@ BTREEInitNode(BTREE_Index index, uint64_t depth, BOOL clean)
    n->depth = depth;
 }
 
+/*
+ *----------------------------------------------------------------------------
+ *
+ * BTREEAllocNode --
+ *
+ *----------------------------------------------------------------------------
+ */
 static BTREE_Node*
-BTREEAllocNode(BTREE_Index index, uint64_t depth, int sync)
+BTREEAllocNode(BTREE_Index index, uint64_t depth, BOOL sync)
 {
    BTREE_Node *n = BTREEInitNode(index, depth, TRUE);
    if (sync) {
@@ -35,12 +53,26 @@ BTREEAllocNode(BTREE_Index index, uint64_t depth, int sync)
    return n;
 }
 
+/*
+ *----------------------------------------------------------------------------
+ *
+ * BTREEFindNode --
+ *
+ *----------------------------------------------------------------------------
+ */
 static BTREE_Node*
 BTREEFindNode(BTREE_Node* n, BTREE_Key* key)
 {
    ASSERT(n != NULL);
 }
 
+/*
+ *----------------------------------------------------------------------------
+ *
+ * BTREE_Insert --
+ *
+ *----------------------------------------------------------------------------
+ */
 int
 BTREE_Insert(BTREE_Key* key, BTREE_Data *data)
 {
@@ -50,6 +82,13 @@ BTREE_Insert(BTREE_Key* key, BTREE_Data *data)
 }
 
 
+/*
+ *----------------------------------------------------------------------------
+ *
+ * BTREE_Find --
+ *
+ *----------------------------------------------------------------------------
+ */
 int
 BTREE_Find(BTREE_Key* key, BTREE_Data *data)
 {
@@ -58,6 +97,13 @@ BTREE_Find(BTREE_Key* key, BTREE_Data *data)
 }
 
 
+/*
+ *----------------------------------------------------------------------------
+ *
+ * BTREE_Remove --
+ *
+ *----------------------------------------------------------------------------
+ */
 int
 BTREE_Remove(BTREE_Key* key)
 {
@@ -66,8 +112,19 @@ BTREE_Remove(BTREE_Key* key)
 
 }
 
+/*
+ *----------------------------------------------------------------------------
+ *
+ * BTREE_Init --
+ *
+ *    Initializes the module for use.  If init is TRUE, this module will
+ *    create a empty BTREE state on the device.  Once this method returns
+ *    the BTREE meta data and root node will be resident in memory.
+ *
+ *----------------------------------------------------------------------------
+ */
 int
-BTREE_Init(const char* path, BTREE_Ops *o, int init)
+BTREE_Init(const char* path, BTREE_Ops *o, BOOL init)
 {
    btops = o;
    dev = btops->Open(path, init);
@@ -97,6 +154,19 @@ BTREE_Init(const char* path, BTREE_Ops *o, int init)
 }
 
 
+/*
+ *----------------------------------------------------------------------------
+ *
+ * BTREE_Cleanup --
+ *
+ *    Called to clean resources used by this module,  does so in the following
+ *    manner:
+ *       - write any dirty state back to device.
+ *       - close deivce.
+ *       - free memory resources.
+ *
+ *----------------------------------------------------------------------------
+ */
 void BTREE_Cleanup(void)
 {
    // write state back to device
