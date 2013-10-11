@@ -8,7 +8,7 @@ LDIR =../lib
 
 LIBS=-lm
 
-_DEPS = btree.h btree_file.h debug.h
+_DEPS = btree.h btree_file.h debug.h list.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJ = main.o btree_file.o btree.o
