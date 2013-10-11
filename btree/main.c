@@ -23,6 +23,7 @@ static const struct option BTREE_UtilOptions[] = {
    { "insert",    no_argument,         NULL, 'i' },
    { "query",     no_argument,         NULL, 'q' },
    { "remove",    no_argument,         NULL, 'r' },
+   { "list-test", no_argument,         NULL, 'l' },
    { "help",      no_argument,         NULL, 'h' },
    { NULL,        no_argument,         NULL, 0 }
 };
@@ -38,7 +39,7 @@ static const char* BTREE_UtilHelpStrings[] = {
    "help menu",
 };
 
-static const char *BTREE_UtilOptString = "f:k:d:iqrch?";
+static const char *BTREE_UtilOptString = "f:k:d:liqrch?";
 static const char *BTREE_FileName = NULL;
 static uint64_t    BTREE_UtilOP;
 static BTREE_Key   key = BTREE_INVALID;
@@ -109,6 +110,9 @@ BTREE_UtilGetOptions(int argc, char* argv[]) {
             break;
          case 'r':
             BTREE_UtilOP = BTREE_UTIL_OP_REMOVE;
+            break;
+         case 'l':
+            TEST_List();
             break;
          case 'h':
             LOG("help\n");

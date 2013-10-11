@@ -3,9 +3,15 @@
 
 struct LIST_Head;
 typedef struct LIST_Head {
-   LIST_Head *next;
-   LIST_Head *prev;
-} LIST_Meta;
+   struct LIST_Head *next;
+   struct LIST_Head *prev;
+} LIST_Head;
+
+#define LIST_HeadOffset(lh, t) \
+   (uint64_t)(&((t*)0)->lh)
+
+#define LIST_ContainerOf(p, type, lh)  \
+   (type*)(((uint64_t)p) - LIST_HeadOffset(lh, type))
 
 inline void
 LIST_HeadInit(LIST_Head *head)
@@ -13,10 +19,10 @@ LIST_HeadInit(LIST_Head *head)
    head->next = head->prev = head;
 }
 
-inline void
+inline int
 LIST_IsEmpty(LIST_Head *head)
 {
-   return head->next = head->prev && head->next = head;
+   return head->next == head->prev && head->next == head;
 }
 
 inline void
@@ -42,6 +48,7 @@ LIST_Remove(LIST_Head *head)
    if (head->prev == e) {
       head->prev = head;
    }
+   return e;
 }
 
 #endif // __LIST_H__
