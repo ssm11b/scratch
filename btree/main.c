@@ -51,6 +51,7 @@ static BTREE_Ops  *ops = NULL;
 #define BTREE_UTIL_OP_QUERY    (1ULL<<2)
 #define BTREE_UTIL_OP_REMOVE   (1ULL<<3)
 
+extern void TEST_List(void);
 
 /*
  *----------------------------------------------------------------------------

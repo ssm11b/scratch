@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <errno.h>
 #include "btree.h"
 #include "debug.h"

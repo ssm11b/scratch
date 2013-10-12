@@ -13,19 +13,19 @@ typedef struct LIST_Head {
 #define LIST_ContainerOf(p, type, lh)  \
    (type*)(((uint64_t)p) - LIST_HeadOffset(lh, type))
 
-inline void
+static inline void
 LIST_HeadInit(LIST_Head *head)
 {
    head->next = head->prev = head;
 }
 
-inline int
+static inline int
 LIST_IsEmpty(LIST_Head *head)
 {
    return head->next == head->prev && head->next == head;
 }
 
-inline void
+static inline void
 LIST_Insert(LIST_Head *head, LIST_Head *l)
 {
    l->prev = head;
@@ -36,7 +36,7 @@ LIST_Insert(LIST_Head *head, LIST_Head *l)
    }
 }
 
-inline LIST_Head*
+static inline LIST_Head*
 LIST_Remove(LIST_Head *head)
 {
    LIST_Head* e;

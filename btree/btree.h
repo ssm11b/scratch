@@ -1,6 +1,7 @@
 #ifndef __BTREE_H__
 #define __BTREE_H__
 
+#include <sys/types.h>
 
 typedef uint64_t  BTREE_Key;
 typedef uint64_t  BTREE_Data;

@@ -16,6 +16,11 @@ DEV          dev;
 BTREE_Node*  root;
 BTREE_Ops*   btops;
 
+#define FOR_EACH_KEY_COND(n, c)  \
+   for (int i = 0; i < BTREE_Order && c; i++) 
+
+#define FOR_EACH_KEY(n) FOR_EACH_KEY_COND(n, 1)
+#define ROF_EACH_KEY
 
 /*
  *----------------------------------------------------------------------------
@@ -28,10 +33,9 @@ static BTREE_Node*
 BTREEInitNode(BTREE_Index index, uint64_t depth, BOOL clean)
 {
    BTREE_Node *n = malloc(sizeof(*n));
-   int i;
-   for (i = 0; i < BTREE_Order && clean; i++) {
+   FOR_EACH_KEY_COND(n, clean) {
       n->keys[i] = BTREE_INVALID;
-   }
+   } ROF_EACH_KEY;
    n->index = index;
    n->depth = depth;
 }
@@ -52,6 +56,20 @@ BTREEAllocNode(BTREE_Index index, uint64_t depth, BOOL sync)
    }
    return n;
 }
+
+
+static BTREE_Index
+BTREEFindIndex(BTREE_Node* n, BTREE_Key* key)
+{
+   return BTREE_INVALID; 
+}
+
+static BTREE_Node*
+BTREEFind(BTREE_Node* n, BTREE_Key* key, BTREE_Index *found)
+{
+   return NULL;
+}
+
 
 /*
  *----------------------------------------------------------------------------
