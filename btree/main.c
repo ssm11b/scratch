@@ -29,12 +29,12 @@ static const struct option BTREE_UtilOptions[] = {
 };
 
 static const char* BTREE_UtilHelpStrings[] = {
-   "btree data filename",
+   "<name> [name] btree data file",
    "create empty btree data file",
-   "key for the operation",
-   "data for the operation",
+   "<key>  [key]  for the operation",
+   "<data> [data] data for the operation",
    "insert [key,data] pair into the tree",
-   "query [data] for the given key",
+   "query [data] for the given [key]",
    "remove the entry for the give [key]",
    "help menu",
 };
@@ -44,6 +44,7 @@ static const char *BTREE_FileName = NULL;
 static uint64_t    BTREE_UtilOP = BTREE_INVALID;
 static BTREE_Key   key = BTREE_INVALID;
 static BTREE_Data  data = BTREE_INVALID;
+static int         status = 0;
 static BTREE_Ops  *ops = NULL;
 
 #define BTREE_UTIL_OP_CREATE   (1ULL<<0)
@@ -68,7 +69,7 @@ BTREE_UtilUsage(const char* progname)
    LOG("usage : %s <options...>\n", progname);
    for (i = 0; i < (sizeof(BTREE_UtilOptions) / sizeof(*BTREE_UtilOptions))-1;
         i++) {
-      LOG("\t-%c --%-20s : %s\n", BTREE_UtilOptions[i].val,
+      LOG("\t-%c --%s %s\n", BTREE_UtilOptions[i].val,
              BTREE_UtilOptions[i].name, BTREE_UtilHelpStrings[i]);
    }
    exit(0);
@@ -155,6 +156,14 @@ BTREE_UtilInsert(void)
 static void
 BTREE_UtilQuery(void)
 {
+   if (key == BTREE_INVALID) {
+      LOG("Key not specified.\n");
+   } else {
+      BTREE_Init(BTREE_FileName, BTREE_FileGetOps(), FALSE);
+      status = BTREE_Find(&key, &data);
+      LOG("Query key %#lx data %#lx status %d\n",
+          key, data, status);
+   }
 }
 
 
@@ -184,7 +193,7 @@ BTREE_UtilRun(void)
    switch(BTREE_UtilOP) {
       case BTREE_UTIL_OP_CREATE:
          LOG("opening file-name %s\n", BTREE_FileName);
-         BTREE_Init(BTREE_FileName, BTREE_FileGetOps(), 1);
+         BTREE_Init(BTREE_FileName, BTREE_FileGetOps(), TRUE);
          break;
       case BTREE_UTIL_OP_INSERT:
          BTREE_UtilInsert();

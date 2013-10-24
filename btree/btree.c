@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "btree.h"
 #define LOGPFX "btree"
 #include "debug.h"
@@ -29,6 +30,34 @@ BTREE_Ops*   btops;
 #define BTREE_NODE_ISLEAF(n)  (meta->depth == n->depth)
 
 
+#define BTREE_OP  \
+   EDEF(INVALID), \
+   EDEF(INIT),    \
+   EDEF(INSERT),  \
+   EDEF(REMOVE),  \
+   EDEF(FIND)
+
+#define EDEF(x)   x
+typedef enum {
+   BTREE_OP
+} BTREEOP;
+#undef EDEF
+
+#define EDEF(x) #x
+const char *BTREE_OPNames[] = {
+   BTREE_OP
+};
+#undef EDEF
+
+#define LOGMASK(l) (1 << l)
+int BTREE_LogMask = LOGMASK(FIND) | LOGMASK(INIT);
+#define BTREE_LOG(level, __fmt,...)                                        \
+   if (BTREE_LogMask & 1<<level) {                                         \
+      LOG("%-7s %-15s "__fmt, BTREE_OPNames[level], __func__, ## __VA_ARGS__);  \
+   }
+
+
+
 /*
  *----------------------------------------------------------------------------
  *
@@ -43,6 +72,9 @@ static BTREE_Node*
 BTREEInitNode(BTREE_Index index, uint64_t depth, BOOL clean)
 {
    BTREE_Node* n = malloc(sizeof(*n));
+
+   BTREE_LOG(INIT, "index %#lx depth %#lx clean %d\n", index, depth, clean);
+
    ASSERT(n != NULL);
    memset(n, 9, sizeof(*n));
    n->fn = malloc(sizeof(*n->fn));
@@ -79,6 +111,7 @@ BTREEInitNodeFromDev(BTREE_Index index, uint64_t depth)
 {
    BTREE_Node *n = BTREEInitNode(index, depth, FALSE);
    btops->ReadNode(dev, n->fn);
+   return n; 
 }
 
 static BTREE_Node*
@@ -136,6 +169,7 @@ BTREEFind(BTREE_Node* n, BTREE_Key* key, BTREE_Index *found)
 {
    int pos;
    BOOL exists = BTREEFindIndex(n, key, found, &pos);
+   BTREE_LOG(FIND, "key %#lx exists %d found %#lx\n", *key, exists, *found);
    if (exists) {
       return n;
    } else if (BTREE_NODE_ISLEAF(n->fn)) {
@@ -147,19 +181,6 @@ BTREEFind(BTREE_Node* n, BTREE_Key* key, BTREE_Index *found)
    return BTREEFind(BTREEGetNode(n, pos), key, found);
 }
 
-
-/*
- *----------------------------------------------------------------------------
- *
- * BTREEFindNode --
- *
- *----------------------------------------------------------------------------
- */
-static BTREE_FileNode*
-BTREEFindNode(BTREE_FileNode* n, BTREE_Key* key)
-{
-   ASSERT(n != NULL);
-}
 
 /*
  *----------------------------------------------------------------------------
@@ -187,7 +208,17 @@ BTREE_Insert(BTREE_Key* key, BTREE_Data *data)
 int
 BTREE_Find(BTREE_Key* key, BTREE_Data *data)
 {
+   BTREE_Node *n;
+   BTREE_Index idx;
    ASSERT(meta != NULL);
+
+   BTREE_LOG(FIND, "key %#lx\n", *key);
+   n = BTREEFind(root, key, &idx);
+   if (n == NULL) {
+      return -EINVAL;
+   }
+   ASSERT(idx < BTREE_Order);
+   *data = n->fn->data[idx];
    return 0;
 }
 
@@ -245,8 +276,9 @@ BTREE_Init(const char* path, BTREE_Ops *o, BOOL init)
       ASSERT(btops->ReadRaw(dev, meta, sizeof(BTREE_Super), 0));
       root = BTREEInitNodeFromDev(meta->rootNode, meta->depth);
    }
-   LOG("magic %#lx root %#lx free %#lx\n", meta->magic,
-       meta->rootNode, meta->freeNode);
+   BTREE_LOG(INIT, "magic %#lx root %#lx free %#lx\n", meta->magic,
+             meta->rootNode, meta->freeNode);
+   return 0;
 }
 
 

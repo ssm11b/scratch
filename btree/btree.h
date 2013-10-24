@@ -15,7 +15,7 @@ typedef int       BOOL;
 #define           TRUE  1
 #define           FALSE 0
 
-#define BTREE_FileNodeState \
+#define BTREE_NodeState \
    EDEF(Invalid), \
    EDEF(Init),    \
    EDEF(Inuse),   \
@@ -24,13 +24,13 @@ typedef int       BOOL;
 #ifdef BTREE_IMPL
 #define EDEF(x)   x
 typedef enum {
-   BTREE_FileNodeState
-} eTest;
+   BTREE_NodeState
+} BTREEOP;
 #undef EDEF
 
 #define EDEF(x) #x
-const char *BTREE_FileNodeStateNames[] = {
-   BTREE_FileNodeState
+const char *BTREE_NodeStateNames[] = {
+   BTREE_NodeState
 };
 #undef EDEF
 #endif
