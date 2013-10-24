@@ -15,7 +15,7 @@ typedef int       BOOL;
 #define           TRUE  1
 #define           FALSE 0
 
-#define BTREE_NodeState \
+#define BTREE_FileNodeState \
    EDEF(Invalid), \
    EDEF(Init),    \
    EDEF(Inuse),   \
@@ -24,27 +24,35 @@ typedef int       BOOL;
 #ifdef BTREE_IMPL
 #define EDEF(x)   x
 typedef enum {
-   BTREE_NodeState
+   BTREE_FileNodeState
 } eTest;
 #undef EDEF
 
 #define EDEF(x) #x
-const char *BTREE_NodeStateNames[] = {
-   BTREE_NodeState
+const char *BTREE_FileNodeStateNames[] = {
+   BTREE_FileNodeState
 };
 #undef EDEF
 #endif
 
-typedef struct BTREE_Node {
+typedef struct BTREE_FileNode {
    BTREE_Index index;
    uint64_t    depth;
-   BTREE_Key   keys[BTREE_Degree-1];
-   BTREE_Data  data[BTREE_Degree-1];
+   BTREE_Key   keys[BTREE_Order];
+   BTREE_Data  data[BTREE_Order];
    BTREE_Index nodes[BTREE_Degree];
-} BTREE_Node;
+} BTREE_FileNode;
+
+struct BTREE_Node;
+typedef struct BTREE_Node BTREE_Node;
+struct BTREE_Node {
+   BTREE_FileNode*   fn;
+   BTREE_Node*       parent;
+   BTREE_Node*       nodes[BTREE_Degree];
+};
 
 // FIXME should align the node ?
-#define BTREE_NODE_SZ   (sizeof(BTREE_Node))
+#define BTREE_NODE_SZ   (sizeof(BTREE_FileNode))
 
 typedef struct BTREE_Meta {
    BTREE_Magic magic;
@@ -66,25 +74,12 @@ typedef struct BTREE_Super {
 typedef uint64_t DEV;
 typedef struct BTREE_Ops {
    int (*Open)(const char* path, int init);
-   int (*WriteNode)(DEV d, BTREE_Node *b);
-   int (*ReadNode)(DEV d, BTREE_Node *b);
+   int (*WriteNode)(DEV d, BTREE_FileNode *b);
+   int (*ReadNode)(DEV d, BTREE_FileNode *b);
    int (*WriteRaw)(DEV d, void *b, size_t sz, off_t off);
    int (*ReadRaw)(DEV d, void *b, size_t sz, off_t off);
 } BTREE_Ops;
 
-#if 0
-typedef struct BTREE {
-   BTREE_Super*   tree;
-   BTREE_Meta*    meta;
-   const char*    path;
-   void*          ioHandle;
-} BTREE;
-
-BTREE_Node* BTREE_ReadNode(BTREE_Index node);
-void        BTREE_WriteNode(BTREE_Node* node);
-BTREE_Index BTREE_AllocNode(BTREE* tree);
-void        BTREE_FreeNode(BTREE* tree, BTREE_Index idx);
-#endif
 
 int   BTREE_Init(const char* path, BTREE_Ops *ops, int init);
 void  BTREE_Cleanup(void);

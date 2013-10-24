@@ -41,7 +41,7 @@ static const char* BTREE_UtilHelpStrings[] = {
 
 static const char *BTREE_UtilOptString = "f:k:d:liqrch?";
 static const char *BTREE_FileName = NULL;
-static uint64_t    BTREE_UtilOP;
+static uint64_t    BTREE_UtilOP = BTREE_INVALID;
 static BTREE_Key   key = BTREE_INVALID;
 static BTREE_Data  data = BTREE_INVALID;
 static BTREE_Ops  *ops = NULL;
@@ -194,6 +194,9 @@ BTREE_UtilRun(void)
          break;
       case BTREE_UTIL_OP_REMOVE:
          BTREE_UtilRemove();
+         break;
+      case BTREE_INVALID:
+         LOG("try -h, --help?\n");
          break;
       default:
          Panic("OP %ld not implemented.\n", BTREE_UtilOP);

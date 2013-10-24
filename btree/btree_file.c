@@ -33,7 +33,7 @@ int BTREE_FileOpen(const char* file, int init) {
  *
  *----------------------------------------------------------------------------
  */
-int BTREE_FileWriteNode(DEV fd, BTREE_Node *n)
+int BTREE_FileWriteNode(DEV fd, BTREE_FileNode *n)
 {
    off_t offset = (BTREE_NODE_SZ * n->index) + BTREE_SUPER_OFFSET;
    ASSERT(n != NULL);
@@ -48,7 +48,7 @@ int BTREE_FileWriteNode(DEV fd, BTREE_Node *n)
  *
  *----------------------------------------------------------------------------
  */
-int BTREE_FileReadNode(DEV fd, BTREE_Node *b) {
+int BTREE_FileReadNode(DEV fd, BTREE_FileNode *b) {
    return 0;
 }
 
