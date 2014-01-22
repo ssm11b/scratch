@@ -1,6 +1,6 @@
 IDIR =./
 CC=gcc
-CFLAGS=-Wall -g -I$(IDIR) -std=c99
+CFLAGS=-Wall -g -I$(IDIR) -std=c99 
 TARGET=test
 
 ODIR=obj
