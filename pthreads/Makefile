@@ -1,6 +1,6 @@
-IDIR =./
+IDIR =../include/
 CC=gcc
-CFLAGS=-Wall -g -I$(IDIR) -std=c99 
+CFLAGS=-Wall -g -I$(IDIR) 
 TARGET=test
 
 ODIR=obj
