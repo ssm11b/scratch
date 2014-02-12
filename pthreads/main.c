@@ -41,7 +41,7 @@ static void* consumer_func(void *threadid)
         ring * r = ioring;
         long data;
 
-        printf("[%lld] %s:%p\n", get_ts(), __func__, threadid);
+        printf("[%ld] %s:%p\n", get_ts(), __func__, threadid);
         
 
         while (cnt < LOOPS) {
@@ -49,7 +49,7 @@ static void* consumer_func(void *threadid)
                 if (data == DATA_INVALID) {
                         usleep(1000);
                 } else {
-                        printf("[%lld] %s:%p: %ld\n", get_ts(), __func__, threadid, data);
+                        printf("[%ld] %s:%p: %ld\n", get_ts(), __func__, threadid, data);
                         cnt++;
                 }
         }

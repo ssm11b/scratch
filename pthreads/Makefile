@@ -6,7 +6,7 @@ TARGET=test
 ODIR=obj
 #LDIR =../lib
 
-#LIBS=-lm
+LIBS=-lpthread
 
 _DEPS = # some include file
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))

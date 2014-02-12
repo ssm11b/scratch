@@ -85,7 +85,7 @@ try_insert:
                 return RING_INVALID;
         }
 
-        idx = atomic_inc64(&_R->_m.prod_idx);
+        idx = atomic_inc64(&_R->_m.prod_idx) - 1;
         // atomic_inc_return64 : atomic increment and return old value
         if (!ring_idx_valid(_R, idx))
         {
