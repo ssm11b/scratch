@@ -2,15 +2,19 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/time.h>
 #include "ring.h"
 
-#define NR_THREADS 5
-pthread_t threads[NR_THREADS];
+static int NR_THREADS = 5;
+static int LOOPS = 50;
 
-#define LOOPS 5
+pthread_t threads[100];
 
+
+
+#define DELAY_US rand() % 1000
 #define DATA_INVALID -1
 static char b[4096];
 
@@ -28,28 +32,29 @@ static inline uint64_t get_ts(void)
 static void producer_func(ring * r)
 {
         while (prod_cnt < LOOPS) {
-                usleep(2000);
-                ring_insert(r, prod_cnt);
-                prod_cnt++;
+                usleep(DELAY_US);
+                if (ring_insert(r, prod_cnt) == 0) {
+                        prod_cnt++;
+                }
         }
 
 }
 
-static void* consumer_func(void *threadid)
+static void * consumer_func(void *threadid)
 {
         int cnt = 0;
         ring * r = ioring;
         long data;
 
-        printf("[%ld] %s:%p\n", get_ts(), __func__, threadid);
+        printf("[%08lx] %s:%p\n", get_ts(), __func__, threadid);
         
 
-        while (cnt < LOOPS) {
+        while (cnt < LOOPS || !ring_empty(r)) {
                 data = ring_remove(r);
                 if (data == DATA_INVALID) {
-                        usleep(1000);
+                        usleep(DELAY_US);
                 } else {
-                        printf("[%ld] %s:%p: %ld\n", get_ts(), __func__, threadid, data);
+                        printf("[%08lx] %s:%p: %ld\n", get_ts(), __func__, threadid, data);
                         cnt++;
                 }
         }
@@ -70,15 +75,18 @@ static void test_atomics(void)
 
 int main(int argc, char *argv[])
 {
-        int rc;
         uint64_t i;
+
+        if (argc > 1) LOOPS = atoi(argv[1]);
+        if (argc > 2) NR_THREADS = atoi(argv[2]) % 100;
+
 
         //test_atomics();
         ring_init(ioring, sizeof(b), DATA_INVALID);
         ring_dump(ioring);
 
-        for (i = 0; i < 1; i++) {
-                rc = pthread_create(threads+i, NULL, consumer_func, (void*) i);
+        for (i = 0; i < NR_THREADS; i++) {
+                pthread_create(threads+i, NULL, consumer_func, (void*) i+LOOPS);
         }
         producer_func(ioring);
         return 0;
