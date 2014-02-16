@@ -12,9 +12,15 @@ typedef struct _ring {
         ring_meta       _m;
         long             _data[1];
 } ring;
-#define RING_INVALID            (_R->_m.inv)
-#define RING_SIZE               (_R->_m.size)
-#define RING_DATA               (_R->_data)
+
+#define RING_INVALID    (_R->_m.inv)
+#define RING_SIZE       (_R->_m.size)
+#define RING_DATA       (_R->_data)
+#define RING_CONS       (_R->_m.cons_idx)
+#define RING_PROD       (_R->_m.prod_idx)
+#define IDX(i)          (i % RING_SIZE)
+#define CONS_IDX        IDX(RING_CONS)
+#define PROD_IDX        IDX(RING_PROD)
 
 #define _RING_SZ(_p, _sz)                                               \
         ((long)_sz  - ((long)(_p->_data) - (long)_p)) / sizeof(_p->_data[0])
@@ -32,14 +38,14 @@ static inline void ring_init(ring * _R, long sz, long invalid)
         }
 }
 
-static inline int ring_empty(ring * r)
+static inline int ring_empty(ring * _R)
 {
-        return r->_m.prod_idx == r->_m.cons_idx;
+        return PROD_IDX == CONS_IDX;
 }
 
-static inline int ring_full(ring * r)
+static inline int ring_full(ring * _R)
 {
-        return (r->_m.prod_idx - r->_m.cons_idx) == r->_m.size;
+        return (PROD_IDX - CONS_IDX) == RING_SIZE;
 }
 
 static void ring_dump(ring * _R)
@@ -75,7 +81,6 @@ static inline long atomic_xchg64(long * ptr_, long new_)
 
 #define atomic_inc64(v) atomic_add64(v, 1)
 #define atomic_dec64(v) atomic_add64(v, -1)
-#define atomic_cmpxchng(v) 0
 
 static int ring_insert(ring * _R, long data)
 {
@@ -110,7 +115,7 @@ again:
         if (ring_empty(_R)) {
                 return RING_INVALID;
         }
-        data = atomic_xchg64(&_R->_data[_R->_m.cons_idx], RING_INVALID);
+        data = atomic_xchg64(&_R->_data[CONS_IDX]/*_R->_m.cons_idx]*/, RING_INVALID);
         if (data == RING_INVALID) {
                 goto again;
         }

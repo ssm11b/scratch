@@ -8,7 +8,7 @@ ODIR=obj
 
 LIBS=-lpthread
 
-_DEPS = # some include file
+_DEPS = $(IDIR)/*.h # some include file
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJ = main.o 
