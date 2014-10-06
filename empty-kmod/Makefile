@@ -1,4 +1,4 @@
-obj-m := empty.o
+obj-m := empty.o miscempty.o
 KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)
 
