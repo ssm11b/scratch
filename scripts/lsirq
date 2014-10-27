@@ -1,0 +1,119 @@
+#! /usr/bin/python
+
+import argparse
+import re
+import multiprocessing
+from tabulate import tabulate
+
+def flatten(cpus, irqs):
+
+    firqs = []
+    for i in irqs:
+        l = []
+        for c in cpus:
+            l.append(i[1][c])
+        firqs.append((i[0], l, i[2]))
+
+    if len(firqs) == 0:
+        return firqs
+
+    cur = firqs[0]
+    sidx = cur[0][0][:-1]
+    eidx = cur[0][0][:-1]
+    sname = cur[2]
+    ename = cur[2]
+    mirqs = []
+
+    for x in range(1, len(firqs)):
+        if cur and cur[1] == firqs[x][1]:
+            eidx = firqs[x][0][0][:-1]
+            ename = firqs[x][2]
+        else:
+            if cur:
+                if sidx != eidx:
+                    irqrange = "%s:%s" % (sidx, eidx)
+                    irqname = sname
+                    irqname.extend([':'])
+                    irqname.extend(ename)
+                    irqname = " ".join(irqname)
+                    mirqs.append(([irqrange], cur[1], [irqname]))
+                else:
+                    mirqs.append(cur)
+            cur = firqs[x]
+            sidx = cur[0][0][:-1]
+            eidx = cur[0][0][:-1]
+	    sname = cur[2]
+	    ename = cur[2]
+
+    print sidx, eidx, sname, ename
+    if sidx != eidx:
+        irqrange = "%s:%s" % (sidx, eidx)
+	irqname = sname
+	irqname.extend([':'])
+	irqname.extend(ename)
+        irqname = " ".join(irqname)
+        mirqs.append(([irqrange], cur[1], [irqname]))
+    else:
+        mirqs.append(cur)
+    return mirqs
+
+def lsintr(intr):
+    nr_cpus = multiprocessing.cpu_count()
+    cpus = []
+    irqs = []
+    missing = range(0, nr_cpus)
+
+    with open("/proc/interrupts") as f:
+        for line in f:
+            m = re.search(intr[0], line, re.I)
+            pre = []
+            post = []
+            if m:
+                c = int(0)
+                irq = []
+                for w in line.split():
+                    if c > int(0) and c <= int(nr_cpus):
+                        irq.append(w)
+                        if int(w) != 0 and c-1 not in cpus:
+                            cpus.append(c-1)
+
+                    if c == 0:
+                        pre.append(w)
+                    elif c > int(nr_cpus):
+                        post.append(w)
+                    c += 1
+
+                if irq:
+                    post =[" ".join(post)]
+                    irqs.append((pre, irq, post))
+
+    header = ["vector"]
+    cpus = sorted(cpus)
+    for c in cpus:
+        header.append("CPU"+str(c))
+        missing.remove(c)
+
+    irqs = flatten(cpus, irqs)
+    header.append("name")
+    table = []
+    for i in irqs:
+        e = i[0]
+        e.extend(i[1])
+        e.extend(i[2])
+        table.append(e)
+    print tabulate(table, header)
+    return
+
+# Use nargs to specify how many arguments an option should take.
+ap = argparse.ArgumentParser()
+ap.add_argument('intr', help="string specifing interrupt, i.e i8042 or Local timer interrupts.", nargs=1)
+
+
+# Grab the opts from argv
+opts = ap.parse_args()
+
+# This line will not be reached if none of a/b/c are specified.
+# Usage/help will be printed instead.
+
+print(opts)
+lsintr(opts.intr)
