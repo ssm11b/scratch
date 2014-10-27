@@ -33,7 +33,7 @@ def flatten(cpus, irqs):
                 if sidx != eidx:
                     irqrange = "%s:%s" % (sidx, eidx)
                     irqname = sname
-                    irqname.extend([':'])
+                    irqname.extend(['->'])
                     irqname.extend(ename)
                     irqname = " ".join(irqname)
                     mirqs.append(([irqrange], cur[1], [irqname]))
@@ -49,7 +49,7 @@ def flatten(cpus, irqs):
     if sidx != eidx:
         irqrange = "%s:%s" % (sidx, eidx)
 	irqname = sname
-	irqname.extend([':'])
+	irqname.extend(['->'])
 	irqname.extend(ename)
         irqname = " ".join(irqname)
         mirqs.append(([irqrange], cur[1], [irqname]))
@@ -95,11 +95,13 @@ def lsintr(intr):
 
     irqs = flatten(cpus, irqs)
     header.append("name")
+    header.append("name")
     table = []
     for i in irqs:
         e = i[0]
         e.extend(i[1])
         e.extend(i[2])
+        print e
         table.append(e)
     print tabulate(table, header)
     return
