@@ -1,0 +1,156 @@
+#! /usr/bin/python
+
+import argparse
+import re
+import multiprocessing
+import numpy
+import time
+import datetime
+import StringIO
+
+def delta(cur, last):
+    return long(cur) - long(last)
+
+def format_line(words, width, fill):
+    idx = 0
+    buf = StringIO.StringIO()
+    for w in words:
+        buf.write("%s  " % str(w).ljust(width[idx], fill))
+        idx += 1
+
+    return buf.getvalue()
+
+
+def print_irq_table(table, header):
+    width = []
+    delim = []
+    for h in header:
+        width.append(len(h))
+        delim.append('-')
+
+    for e in table:
+        idx = 0
+        for i in e:
+            width[idx] = max(len(str(i)), width[idx])
+            idx += 1
+
+    print format_line(header, width, ' ')#buf.getvalue()
+    print format_line(delim, width, '-')#buf.getvalue()
+    for e in table:
+        print format_line(e, width, ' ')
+
+
+def lsintr(intr, total, last_totals, sec):
+
+    nr_cpus = multiprocessing.cpu_count()
+    cpus = []
+    irqs = []
+    missing = range(0, nr_cpus)
+    current_totals = {}
+
+    with open("/proc/interrupts") as f:
+        for line in f:
+            m = re.search(intr[0], line, re.I)
+            pre = []
+            post = []
+            if m:
+                c = int(0)
+                irq = []
+                for w in line.split():
+                    if c > int(0) and c <= int(nr_cpus):
+                        irq.append(w)
+                        if int(w) != 0 and c-1 not in cpus:
+                            cpus.append(c-1)
+
+                    if c == 0:
+                        pre.append(w)
+                    elif c > int(nr_cpus):
+                        post.append(w)
+                    c += 1
+
+                if irq:
+                    post =[" ".join(post)]
+                    irqs.append((pre, irq, post))
+
+    header = ["Vector"]
+    table = []
+    cpus = sorted(cpus)
+    for c in cpus:
+        header.append("CPU"+str(c))
+        missing.remove(c)
+
+    table = []
+    totals = []
+    for c in cpus:
+        totals.append(int(0))
+
+    for i in irqs:
+        vector = i[0]
+        name = i[2]
+        entry_name = name[0] + vector[0]
+        total_ints = int(0)
+        e = vector
+        l = []
+        idx = 0
+        for c in cpus:
+            ints = int(i[1][c])
+            totals[idx] += ints
+            total_ints += ints
+            idx += 1
+            l.append(i[1][c])
+
+        e.extend(l)
+        e.extend(name)
+        current_totals[entry_name]= total_ints
+        if last_totals.has_key(entry_name):
+            d = delta(current_totals[entry_name], last_totals[entry_name])
+            e.extend([d / sec])
+        else:
+            e.extend('-')
+
+        table.append(e)
+
+    total_ints = int(0)
+    for i in totals:
+        total_ints += i
+    if total:
+        table = []
+        header.append("Total Intrs")
+    else:
+        header.append("Name / Total")
+
+    header.append("Intr/Sec".format(sec))
+
+    e = ['Total'] + totals + [str(total_ints)]
+    current_totals['Total'] = total_ints
+    if 'Total' in last_totals:
+        e.extend([delta(current_totals['Total'], last_totals['Total']) / sec])
+    else:
+        e.extend('-')
+    table.append(e)
+
+    print_irq_table(table, header)
+#print tabulate(table, header)
+    return current_totals
+
+# Use nargs to specify how many arguments an option should take.
+ap = argparse.ArgumentParser()
+ap.add_argument('intr', help="string specifing interrupt, i.e i8042 or Local timer interrupts.", nargs=1)
+ap.add_argument('--delay', help="seconds per iteration", default=1, type=int)
+ap.add_argument("--total", help="only show totals", action="store_true")
+
+
+# Grab the opts from argv
+opts = ap.parse_args()
+
+# This line will not be reached if none of a/b/c are specified.
+# Usage/help will be printed instead.
+
+
+totals = {}
+while True:
+    ts = time.time()
+    print "{0}".format(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'))
+    totals = lsintr(opts.intr, opts.total, totals, long(opts.delay))
+    time.sleep(opts.delay)
+    print
