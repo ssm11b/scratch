@@ -1,7 +1,7 @@
 IDIR=.
 CC=gcc
 CFLAGS=-Wall -I$(IDIR) -std=c11 #-Wno-delete-non-virtual-dtor #-pedantic -Wno-c++11-extensions
-TARGET=queue
+TARGET=circular_buffer
 
 ODIR=./obj
 LIBS=
@@ -9,7 +9,7 @@ LIBS=
 _DEPS = # $(IDIR)/*.h # some include file
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = queue.o
+_OBJ = circular_buffer.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: $(ODIR) $(TARGET) 
