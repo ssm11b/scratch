@@ -6,10 +6,17 @@
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
+typedef bool (*compare_t)(uint64_t a, uint64_t b);
+
 typedef struct {
+  // heap data array.
   uint64_t* data;
-  size_t data_words;;
+  // Number of data words in the data array
+  size_t data_words;
+  // Number of data words on heap.
   size_t size;
+  // Compare function.
+  compare_t compare_fn;
 } heap_t;
 
 
@@ -22,7 +29,7 @@ heap_init(heap_t* heap, uint64_t* data, size_t size)
 }
 
 static heap_t*
-heap_create(size_t size)
+heap_create(size_t size, compare_t compare_fn)
 {
   size_t malloc_size = sizeof(heap_t) + size * sizeof(uint64_t);
   heap_t* heap = malloc(malloc_size);
@@ -38,6 +45,7 @@ heap_create(size_t size)
 
   heap->data_words = size;
   heap->size = 0;
+  heap->compare_fn = compare_fn;
   return heap;
 }
 
@@ -206,7 +214,7 @@ static const size_t c_heap_size = 16 * 1024;
 int main()
 {
   heap_test_verify();
-  heap_t* h =  heap_create(c_heap_size);
+  heap_t* h =  heap_create(c_heap_size, NULL);
   srandom((long)h);
 
   assert(h);
